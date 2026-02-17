@@ -32,7 +32,7 @@ The **Materials-SOC-HAM** dataset proposed in this paper is publicly available.
    * **Extraction Code**: `DGEo`
 
 2. **Configuration**: 
-   Once the dataset is downloaded and extracted to your local directory, you must update the data split files:
+   Once the dataset is downloaded and extracted to your local directory, you must update the file roots:
    * Locate the following files: `datasets/train.txt`, `datasets/val.txt`, and `datasets/test.txt`.
    * Replace the placeholder `/your_path/` in each file with the absolute path to your local dataset directory.
 
