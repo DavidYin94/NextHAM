@@ -445,7 +445,7 @@ class L2MAELoss(torch.nn.Module):
             return torch.sum(dists)
 
 class Material_Project_Dataset(torch.utils.data.Dataset):
-    def __init__(self, mode, construct_kernel, device, dataset_root='/work/home/nextham/NextHAM_V1/datasets/'):
+    def __init__(self, mode, construct_kernel, device, dataset_root='/your_path/NextHAM/datasets/'):
         super().__init__()
         self.mode = mode
         self.construct_kernel = construct_kernel

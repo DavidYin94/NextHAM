@@ -253,7 +253,7 @@ def get_WA_data(WA_data_root):
 
 
 class Material_Project_Dataset(torch.utils.data.Dataset):
-    def __init__(self, mode, construct_kernel, device, dataset_root='/work/home/nextham/NextHAM_V1/datasets/'):
+    def __init__(self, mode, construct_kernel, device, dataset_root='/your_path/NextHAM/datasets/'):
         super().__init__()
         self.mode = mode
         self.construct_kernel = construct_kernel
@@ -411,7 +411,7 @@ def main(args):
     ls = [1, 1, 1, 1, 3, 3, 5, 5, 7]
     buffers = {} 
     total_process_sample = 0 
-    file_res_w_root = '/work/home/nextham/NextHAM_V1/test_res.txt'
+    file_res_w_root = '/your_path/NextHAM/test_res.txt'
     file_res_w_obj = open(file_res_w_root, 'w')
     time1 = time.time()
     with torch.no_grad():

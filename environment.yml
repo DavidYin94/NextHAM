@@ -1,4 +1,4 @@
-name: base
+name: nextham
 channels:
   - pytorch
   - nvidia
