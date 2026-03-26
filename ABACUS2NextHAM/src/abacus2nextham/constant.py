@@ -1,0 +1,288 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+PATH_PSEUDO = '/your_path/NextHAM-main/ABACUS2NextHAM/input/pseudo'
+PATH_ORBITAL = '/your_path/NextHAM-main/ABACUS2NextHAM/input/orbital'
+PATH_STRU = '/your_path/NextHAM-main/ABACUS2NextHAM/input/structures'
+
+PATH_SIMULATION = '/your_path/NextHAM-main/ABACUS2NextHAM/simulate'
+PATH_DATASET = '/your_path/NextHAM-main/ABACUS2NextHAM/dataset'
+
+ABACUS_SCF = '/your_path/apprepo/abacus/v3.10.0LTS-intelmpi2025/app/bin/abacus'
+ABACUS_SCF_ENV = '/your_path/apprepo/abacus/v3.10.0LTS-intelmpi2025/scripts/env.sh'
+ABACUS_GETHS = '/your_path/apprepo/abacus/v3.9.0.18-intelmpi2025/app/bin/abacus'
+ABACUS_GETHS_ENV = '/your_path/apprepo/abacus/v3.9.0.18-intelmpi2025/scripts/env.sh'
+
+SLURM_PART = 'hfacnormal04'
+SLURM_NTASKS = 32
+
+SUBMIT_NUMBER_START = -1
+SUBMIT_NUMBER_END = 100
+
+
+DOPE_L0 = [
+            'Ga',
+            'O'
+            ]
+
+
+DOPE_L1 = [
+           'Ti',
+           'Cu',
+           'Zn',
+           'Sn',
+           'Ge',
+           'Si',
+           'N',
+           'P',
+           'Mo',
+           'Hf',
+           'Zr',
+           'B',
+           'Mg',
+           'Li',
+           'Na',
+           'H'
+           ]
+
+
+DOPE_L2 = [
+           'V',
+           'Cr',
+           'Mn',
+           'Fe',
+           'Co',
+           'Ni',
+           'Nb'
+           ]
+
+
+DOPE_L3 = [
+           'Tb',
+           'Dy',
+           'Er',
+           'Eu',
+           'Sm',
+           'Nd',
+           'Pr',
+           'Pm'
+           ]
+
+
+ELEMENTS = [
+    'Ag',
+    'Al',
+    'Ar',
+    'As',
+    'Au',
+    'Ba',
+    'Be',
+    'Bi',
+    'Br',
+    'B',
+    'Ca',
+    'Cd',
+    'Cl',
+    'Co',
+    'Cr',
+    'Cs',
+    'Cu',
+    'C',
+    'Fe',
+    'F',
+    'Ga',
+    'Ge',
+    'He',
+    'Hf',
+    'Hg',
+    'H',
+    'In',
+    'Ir',
+    'I',
+    'Kr',
+    'K',
+    'Li',
+    'Mg',
+    'Mn',
+    'Mo',
+    'Na',
+    'Nb',
+    'Ne',
+    'Ni',
+    'N',
+    'Os',
+    'O',
+    'Pb',
+    'Pd',
+    'Pt',
+    'P',
+    'Rb',
+    'Re',
+    'Rh',
+    'Ru',
+    'Sb',
+    'Sc',
+    'Se',
+    'Si',
+    'Sn',
+    'Sr',
+    'S',
+    'Ta',
+    'Tc',
+    'Te',
+    'Ti',
+    'Tl',
+    'V',
+    'W',
+    'Xe',
+    'Y',
+    'Zn',
+    'Zr'
+]
+
+
+PP = {
+    'Ag':'Ag.upf',
+    'Al':'Al.upf',
+    'Ar':'Ar.upf',
+    'As':'As.upf',
+    'Au':'Au.upf',
+    'B':'B.upf',
+    'Ba':'Ba.upf',
+    'Be':'Be.upf',
+    'Bi':'Bi.upf',
+    'Br':'Br.upf',
+    'C':'C.upf',
+    'Ca':'Ca.upf',
+    'Cd':'Cd.upf',
+    'Cl':'Cl.upf',
+    'Co':'Co.upf',
+    'Cr':'Cr.upf',
+    'Cs':'Cs.upf',
+    'Cu':'Cu.upf',
+    'F':'F.upf',
+    'Fe':'Fe.upf',
+    'Ga':'Ga.upf',
+    'Ge':'Ge.upf',
+    'H':'H.upf',
+    'He':'He.upf',
+    'Hf':'Hf.upf',
+    'Hg':'Hg.upf',
+    'I':'I.upf',
+    'In':'In.upf',
+    'Ir':'Ir.upf',
+    'K':'K.upf',
+    'Kr':'Kr.upf',
+    'Li':'Li.upf',
+    'Mg':'Mg.upf',
+    'Mn':'Mn.upf',
+    'Mo':'Mo.upf',
+    'N':'N.upf',
+    'Na':'Na.upf',
+    'Nb':'Nb.upf',
+    'Ne':'Ne.upf',
+    'Ni':'Ni.upf',
+    'O':'O.upf',
+    'Os':'Os.upf',
+    'P':'P.upf',
+    'Pb':'Pb.upf',
+    'Pd':'Pd.upf',
+    'Po':'Po.upf',
+    'Pt':'Pt.upf',
+    'Rb':'Rb.upf',
+    'Re':'Re.upf',
+    'Rh':'Rh.upf',
+    'Rn':'Rn.upf',
+    'Ru':'Ru.upf',
+    'S':'S.upf',
+    'Sb':'Sb.upf',
+    'Sc':'Sc.upf',
+    'Se':'Se.upf',
+    'Si':'Si.upf',
+    'Sn':'Sn.upf',
+    'Sr':'Sr.upf',
+    'Ta':'Ta.upf',
+    'Tc':'Tc.upf',
+    'Te':'Te.upf',
+    'Ti':'Ti.upf',
+    'Tl':'Tl.upf',
+    'V':'V.upf',
+    'W':'W.upf',
+    'Xe':'Xe.upf',
+    'Y':'Y.upf',
+    'Zn':'Zn.upf',
+    'Zr':'Zr.upf'
+}
+
+
+BASIS = {
+    'Ag':'Ag_gga_7au_100Ry_4s2p2d1f.orb',
+    'Al':'Al_gga_7au_100Ry_2s2p1d.orb',
+    'Ar':'Ar_gga_7au_100Ry_2s2p1d.orb',
+    'As':'As_gga_7au_100Ry_2s2p1d.orb',
+    'Au':'Au_gga_7au_100Ry_4s2p2d1f.orb',
+    'B':'B_gga_7au_100Ry_2s2p1d.orb',
+    'Ba':'Ba_gga_8au_100Ry_4s2p1d.orb',
+    'Be':'Be_gga_7au_100Ry_4s1p.orb',
+    'Bi':'Bi_gga_7au_100Ry_2s2p2d1f.orb',
+    'Br':'Br_gga_8au_100Ry_2s2p1d.orb',
+    'C':'C_gga_7au_100Ry_2s2p1d.orb',
+    'Ca':'Ca_gga_7au_100Ry_4s2p1d.orb',
+    'Cd':'Cd_gga_7au_100Ry_4s2p2d1f.orb',
+    'Cl':'Cl_gga_7au_100Ry_2s2p1d.orb',
+    'Co':'Co_gga_7au_100Ry_4s2p2d1f.orb',
+    'Cr':'Cr_gga_7au_100Ry_4s2p2d1f.orb',
+    'Cs':'Cs_gga_8au_100Ry_4s2p1d.orb',
+    'Cu':'Cu_gga_7au_100Ry_4s2p2d1f.orb',
+    'F':'F_gga_7au_100Ry_2s2p1d.orb',
+    'Fe':'Fe_gga_7au_100Ry_4s2p2d1f.orb',
+    'Ga':'Ga_gga_8au_100Ry_2s2p2d1f.orb',
+    'Ge':'Ge_gga_8au_100Ry_2s2p2d1f.orb',
+    'H':'H_gga_7au_100Ry_2s1p.orb',
+    'He':'He_gga_7au_100Ry_2s1p.orb',
+    'Hf':'Hf_gga_7au_100Ry_4s2p2d1f.orb',
+    'Hg':'Hg_gga_7au_100Ry_4s2p2d1f.orb',
+    'I':'I_gga_7au_100Ry_2s2p1d.orb',
+    'In':'In_gga_7au_100Ry_2s2p2d1f.orb',
+    'Ir':'Ir_gga_7au_100Ry_4s2p2d1f.orb',
+    'K':'K_gga_7au_100Ry_4s2p1d.orb',
+    'Kr':'Kr_gga_8au_100Ry_2s2p1d.orb',
+    'Li':'Li_gga_7au_100Ry_4s1p.orb',
+    'Mg':'Mg_gga_7au_100Ry_4s2p1d.orb',
+    'Mn':'Mn_gga_7au_100Ry_4s2p2d1f.orb',
+    'Mo':'Mo_gga_7au_100Ry_4s2p2d1f.orb',
+    'N':'N_gga_7au_100Ry_2s2p1d.orb',
+    'Na':'Na_gga_7au_100Ry_4s2p1d.orb',
+    'Nb':'Nb_gga_7au_100Ry_4s2p2d1f.orb',
+    'Ne':'Ne_gga_7au_100Ry_2s2p1d.orb',
+    'Ni':'Ni_gga_7au_100Ry_4s2p2d1f.orb',
+    'O':'O_gga_7au_100Ry_2s2p1d.orb',
+    'Os':'Os_gga_7au_100Ry_4s2p2d1f.orb',
+    'P':'P_gga_7au_100Ry_2s2p1d.orb',
+    'Pb':'Pb_gga_7au_100Ry_2s2p2d1f.orb',
+    'Pd':'Pd_gga_7au_100Ry_2s2p2d1f.orb',
+    'Pt':'Pt_gga_7au_100Ry_4s2p2d1f.orb',
+    'Rb':'Rb_gga_9au_100Ry_4s2p1d.orb',
+    'Re':'Re_gga_7au_100Ry_4s2p2d1f.orb',
+    'Rh':'Rh_gga_7au_100Ry_4s2p2d1f.orb',
+    'Ru':'Ru_gga_7au_100Ry_4s2p2d1f.orb',
+    'S':'S_gga_7au_100Ry_2s2p1d.orb',
+    'Sb':'Sb_gga_7au_100Ry_2s2p2d1f.orb',
+    'Sc':'Sc_gga_7au_100Ry_4s2p2d1f.orb',
+    'Se':'Se_gga_7au_100Ry_2s2p1d.orb',
+    'Si':'Si_gga_7au_100Ry_2s2p1d.orb',
+    'Sn':'Sn_gga_7au_100Ry_2s2p2d1f.orb',
+    'Sr':'Sr_gga_8au_100Ry_4s2p1d.orb',
+    'Ta':'Ta_gga_7au_100Ry_4s2p2d1f.orb',
+    'Tc':'Tc_gga_7au_100Ry_4s2p2d1f.orb',
+    'Te':'Te_gga_7au_100Ry_2s2p2d1f.orb',
+    'Ti':'Ti_gga_7au_100Ry_4s2p2d1f.orb',
+    'Tl':'Tl_gga_7au_100Ry_2s2p2d1f.orb',
+    'V':'V_gga_7au_100Ry_4s2p2d1f.orb',
+    'W':'W_gga_7au_100Ry_4s2p2d1f.orb',
+    'Xe':'Xe_gga_7au_100Ry_2s2p1d.orb',
+    'Y':'Y_gga_8au_100Ry_4s2p2d1f.orb',
+    'Zn':'Zn_gga_7au_100Ry_4s2p2d1f.orb',
+    'Zr':'Zr_gga_7au_100Ry_4s2p2d1f.orb'
+}

@@ -1,0 +1,6 @@
+Case 0 JobID None Path /your_path/NextHAM-main/ABACUS2NextHAM/simulate/case-0 File:stru-1263-P-kappa-D-Cu-Ga_i_C1_Ga1.70O1.70Ga2.18b_0
+Case 0 JobID None Path /your_path/NextHAM-main/ABACUS2NextHAM/simulate/case-0 File:stru-1263-P-kappa-D-Cu-Ga_i_C1_Ga1.70O1.70Ga2.18b_0
+Case 0 JobID 23881051 Path /your_path/NextHAM-main/ABACUS2NextHAM/simulate/case-0 File:stru-1263-P-kappa-D-Cu-Ga_i_C1_Ga1.70O1.70Ga2.18b_0
+Case 0 JobID 23881052 Path /your_path/NextHAM-main/ABACUS2NextHAM/simulate/case-0 File:stru-1263-P-kappa-D-Cu-Ga_i_C1_Ga1.70O1.70Ga2.18b_0
+Case 0 JobID 23881523 Path /your_path/NextHAM-main/ABACUS2NextHAM/simulate/case-0 File:stru-1263-P-kappa-D-Cu-Ga_i_C1_Ga1.70O1.70Ga2.18b_0
+Case 0 JobID 23881525 Path /your_path/NextHAM-main/ABACUS2NextHAM/simulate/case-0 File:stru-1263-P-kappa-D-Cu-Ga_i_C1_Ga1.70O1.70Ga2.18b_0
