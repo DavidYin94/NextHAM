@@ -326,7 +326,7 @@ def process_worker(q, model_idx, test_dataset, device, model, range_dis):
                                         node_atom = node_atom,
                                         use_sep = True,
                                         range_dis = range_dis)        
-                q.put((mp_stru_name[0], model_idx, safe(pred_h_direct_sum), safe(H0_raw), safe(overlap_tensor_raw), safe(mask_tensor_raw), safe(delta_H_raw)))
+                q.put((mp_stru_name[0], model_idx, safe(pred_h_direct_sum), safe(H0_raw), safe(overlap_tensor_raw), safe(mask_tensor_raw), safe(delta_H_raw), safe(edge_vec), safe(edge_src), safe(edge_dst)))
     except Exception as e:
         print(f"Process {model_idx} encountered an error: {e}")
 
@@ -416,7 +416,7 @@ def main(args):
     time1 = time.time()
     with torch.no_grad():
         while total_process_sample < testing_num:
-            mp_key, model_idx, pred_h_direct_sum, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw = q.get()
+            mp_key, model_idx, pred_h_direct_sum, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw, edge_vec, edge_src, edge_dst = q.get()
             print('mp_key, model_idx: ', mp_key, model_idx)
             if mp_key not in buffers:
                 buffers[mp_key] = [None, None, None, None]
@@ -437,6 +437,7 @@ def main(args):
                 file_res_w_obj.flush()
                 buffers.pop(mp_key)
                 MAE_list.append(mae_H_pred.item())
+                # torch.save((H_gt, H_pred, None, None, mask_tensor_raw, edge_vec, edge_src, edge_dst, ele_dict), '/your_path/NextHAM/res/' + (mp_key if mp_key.ends_with('.pth') else mp_key+'.pth'))
                 total_process_sample += 1
         print('np.mean(MAE_list): ', np.mean(MAE_list))
         print('mean time: ', (time.time()-time1)/total_process_sample)
