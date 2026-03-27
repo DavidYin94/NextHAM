@@ -216,10 +216,7 @@ class GraphAttentionTransformerHAM(torch.nn.Module):
         # print(self.irreps_edge_output)
         # exit(0)
         self.input_rs = LinearRS(self.irreps_edge_output, self.irreps_edge_mid, bias=False)
-        
-        self.edge_lin = LinearRS(o3.Irreps(f'32x0e+{self.irreps_edge_output.sort()[0].simplify()}'), self.irreps_edge_output)
-        self.node_lin = LinearRS(self.irreps_node_embedding, self.irreps_feature)          
-          
+        self.edge_lin = LinearRS(o3.Irreps(f'32x0e+{self.irreps_edge_output.sort()[0].simplify()}'), self.irreps_edge_output)          
         self.norm = get_norm_layer(self.norm_layer)(self.irreps_feature)
         self.out_dropout = None
         if self.out_drop != 0.0:
