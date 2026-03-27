@@ -31,7 +31,7 @@ The **Materials-SOC-HAM** dataset proposed in this paper is publicly available.
 
 1. **Download**: You can access the dataset via the link below:
    * **Link**: [Materials-SOC-HAM Dataset](https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_c3c50c552df97ace&)
-   * **Extraction Code**: `DGEo`
+   * **Extraction Code**: `Ugnh`
 
 2. **Configuration**: 
    Once the dataset is downloaded and extracted to your local directory, you must update the file roots:
@@ -46,8 +46,8 @@ The **Materials-SOC-HAM** dataset proposed in this paper is publicly available.
 
    If you wish to train on new data, we highly recommend fine-tuning from our provided pre-trained models to achieve faster convergence.
 
-   * **Download Link**: [NextHAM Pre-trained Weights](https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_191f3754a48697e8&)
-   * **Password**: `QoYA`
+   * **Download Link**: [NextHAM Pre-trained Weights]( https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_191f3754a48697e8& )
+   * **Password**: `vORL`
    * **Setup**: Please download the weights and place them in the `./pretrained_models` directory.
 
 2. **Training**
