@@ -96,7 +96,7 @@ The processed `.pth` data files will be stored in the `processed_data/` director
 
 ### Step 4: Train and Evaluate on Your Custom Dataset
 1. Navigate back to the project root directory.
-2. Manually split the `data.txt` (generated in Step 3) into three separate files: `train.txt`, `val.txt`, and `test.txt`. Save them under the `./datasets/` directory.
+2. Split the `data.txt` (generated in Step 3) into three separate files: `train.txt`, `val.txt`, and `test.txt`. Save them under the `./datasets/` directory.
 3. Follow the standard training and testing commands detailed in the **Training and Evaluation** section above.
 4. **Required for Visualization:** If you intend to plot band structures later, you must save the model's predictions during testing. **Uncomment line 440 in `test.py`** before running the test script. Predictions will be saved in the `./res/` directory by default.
 
