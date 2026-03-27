@@ -112,7 +112,7 @@ sh run_bands.sh
 
 ## 📝 Citations
 
-If you find our work and dataset useful in your research, please consider citing our paper:
+If you find our work and dataset useful in your research, please cite our paper:
 
 ```bibtex
 @inproceedings{yin2026nextham,
