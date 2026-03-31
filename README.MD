@@ -30,7 +30,7 @@ conda activate nextham
 The **Materials-SOC-HAM** dataset proposed in this paper is publicly available.
 
 1. **Download**: You can access the dataset via the link below:
-   * **Link**: [Materials-SOC-HAM Dataset](https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_c3c50c552df97ace&
+   * **Link**: [Materials-SOC-HAM Dataset] (https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_c3c50c552df97ace&)
    * **Extraction Code**: `vFWY`
 
 2. **Configuration**: 
@@ -46,7 +46,7 @@ The **Materials-SOC-HAM** dataset proposed in this paper is publicly available.
 
    If you wish to train on new data, we highly recommend fine-tuning from our provided pre-trained models to achieve faster convergence.
 
-   * **Download Link**: [NextHAM Pre-trained Weights]( https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_191f3754a48697e8&
+   * **Download Link**: [NextHAM Pre-trained Weights] (https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_191f3754a48697e8&)
    * **Password**: `VDGJ`
    * **Setup**: Please download the weights and place them in the `./pretrained_models` directory.
 
