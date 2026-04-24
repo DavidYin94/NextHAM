@@ -15,7 +15,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python train_val.py \
     --is-accurate-label \
     --trace-out-len 81 \
     --epochs 100 \
-    --lr 5e-4 \
+    --lr 2e-4 \
     --batch-size 1 \
     --eval-batch-size 1 \
     --weight-decay 0 \

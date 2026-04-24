@@ -216,7 +216,9 @@ class GraphAttentionTransformerHAM(torch.nn.Module):
         # print(self.irreps_edge_output)
         # exit(0)
         self.input_rs = LinearRS(self.irreps_edge_output, self.irreps_edge_mid, bias=False)
-        self.edge_lin = LinearRS(o3.Irreps(f'32x0e+{self.irreps_edge_output.sort()[0].simplify()}'), self.irreps_edge_output)          
+        
+        self.edge_lin = LinearRS(o3.Irreps(f'32x0e+{self.irreps_edge_output.sort()[0].simplify()}'), self.irreps_edge_output)
+          
         self.norm = get_norm_layer(self.norm_layer)(self.irreps_feature)
         self.out_dropout = None
         if self.out_drop != 0.0:
@@ -388,11 +390,9 @@ class GraphAttentionTransformerHAM(torch.nn.Module):
                 batch=batch, edge_length=edge_length)
             if blk_idx >= self.start_layer:
                 if blk_idx < len(self.blocks)-1:
-                    edge_features_invar, edge_features_equi_nonlin = self.edge_feature_nonlin_block[blk_idx - self.start_layer](edge_features)
-                    scale = (torch.linalg.norm(edge_features, 2, dim=-1, keepdim=True)/(torch.linalg.norm(edge_features_equi_nonlin, 2, dim=-1, keepdim=True)+1e-5)).detach()
-                    edge_features = edge_features + 0.2 * scale * edge_features_equi_nonlin 
+                    edge_features_invar, _ = self.edge_feature_nonlin_block[blk_idx - self.start_layer](edge_features)
                 else:
-                    edge_features_invar, edge_features_equi_nonlin = self.edge_feature_nonlin_block[blk_idx - self.start_layer](edge_features[:,:32]) 
+                    edge_features_invar, _ = self.edge_feature_nonlin_block[blk_idx - self.start_layer](edge_features[:,:32]) 
                 edge_features_invar_list.append(edge_features_invar)
         # ---------------------- Output Decoding ---------------------- #
         edge_ham = self.edge_lin(edge_features)
@@ -412,7 +412,7 @@ def graph_attention_transformer_nonlinear_materials_ham_soc(irreps_in, irreps_ed
     atomref=None, task_mean=None, task_std=None, with_trace = True, trace_out_len=25, start_layer=0, use_w2v = True, **kwargs):
     model = GraphAttentionTransformerHAM(
         irreps_in=irreps_in, irreps_edge_output=irreps_edge, 
-        irreps_edge_embedding='32x0e+16x1o+16x1e+8x2e+8x2o+8x3e+8x3o+8x4e', num_layers=4, start_layer=start_layer,
+        irreps_edge_embedding='32x0e+16x0o+16x1o+16x1e+8x2e+8x2o+8x3e+8x3o+8x4e+8x4o+4x5e+4x5o+1x6e+1x6o+1x7e', num_layers=4, start_layer=start_layer,
         irreps_node_attr='1x0e', irreps_sh='1x0e+1x1o+1x2e+1x3o+1x4e+1x5o',
         max_radius=radius,
         number_of_basis=num_basis, fc_neurons=[64, 64], basis_type='exp',

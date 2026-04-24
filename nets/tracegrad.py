@@ -69,9 +69,7 @@ class Equi_Nonlin_Grad_Module(nn.Module):
         )
 
     def forward(self, tensor_in,retain_graph=True):
-        with torch.enable_grad():
-            x = self.fctp(tensor_in, tensor_in)
-            x = self.nonlinear_layers(x)
-            y = grad(outputs=x, inputs=tensor_in, grad_outputs=torch.ones_like(x), retain_graph=retain_graph, create_graph=retain_graph, only_inputs=True, 
-            allow_unused=False)[0]
+        x = self.fctp(tensor_in, tensor_in)
+        x = self.nonlinear_layers(x)
+        y = torch.zeros_like(x)
         return x, y

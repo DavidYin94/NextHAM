@@ -11,8 +11,8 @@ PATH_DATASET = '/your_path/NextHAM-main/ABACUS2NextHAM/dataset'
 
 ABACUS_SCF = '/your_path/apprepo/abacus/v3.10.0LTS-intelmpi2025/app/bin/abacus'
 ABACUS_SCF_ENV = '/your_path/apprepo/abacus/v3.10.0LTS-intelmpi2025/scripts/env.sh'
-ABACUS_GETHS = '/your_path/apprepo/abacus/v3.9.0.18-intelmpi2025/app/bin/abacus'
-ABACUS_GETHS_ENV = '/your_path/apprepo/abacus/v3.9.0.18-intelmpi2025/scripts/env.sh'
+ABACUS_GETHS = '/your_path/apprepo/abacus/v3.9.0.18gethscacd-intelmpi2026/app/bin/abacus'
+ABACUS_GETHS_ENV = '/your_path/apprepo/abacus/v3.9.0.18gethscacd-intelmpi2026/scripts/env.sh'
 
 SLURM_PART = 'hfacnormal04'
 SLURM_NTASKS = 32

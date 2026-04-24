@@ -553,18 +553,38 @@ def main(args):
 
         if checkpoint_path is not None:
             state_dict = torch.load(checkpoint_path, map_location='cpu')
-            model_range_state_dict = models[model_idx].state_dict()
+            ckpt_state_dict = state_dict.get('state_dict', state_dict) # 增加兼容性处理
+            current_model_dict = models[model_idx].state_dict()
+            new_state_dict = {}
 
-            compatible_state_dict = {k: v for k, v in state_dict['state_dict'].items() 
-                                    if k in model_range_state_dict and v.size() == model_range_state_dict[k].size()}
-        
-            model_range_state_dict.update(compatible_state_dict)
-            models[model_idx].load_state_dict(model_range_state_dict)
+            for k, v_current in current_model_dict.items():
+                if k in ckpt_state_dict:
+                    v_ckpt = ckpt_state_dict[k]
 
-            print('model_idx, len(compatible_state_dict), len(model_range_state_dict): ', model_idx, len(compatible_state_dict), len(model_range_state_dict))
+                    # 情况1：形状完全匹配
+                    if v_ckpt.size() == v_current.size():
+                        new_state_dict[k] = v_ckpt
+                    
+                    # # 情况2：维度一致且变大，进行补0处理
+                    # elif len(v_ckpt.size()) == len(v_current.size()) and \
+                    #     all(old_s <= curr_s for old_s, curr_s in zip(v_ckpt.size(), v_current.size())):
+                        
+                    #     padded_tensor = torch.zeros_like(v_current)
+                    #     slices = tuple(slice(0, old_s) for old_s in v_ckpt.size())
+                    #     padded_tensor[slices] = v_ckpt
+                    #     new_state_dict[k] = padded_tensor
+            
+            # 直接加载 new_state_dict，缺失的层会自动保持模型原本的初始化
+            missing_keys, unexpected_keys = models[model_idx].load_state_dict(new_state_dict, strict=False)
+
+            _log.info(f"model_idx: {model_idx}")
+            _log.info(f"  - Successfully processed/padded keys: {len(new_state_dict)}")
+            _log.info(f"  - Missing keys (kept original): {len(missing_keys)}")
+            
+            if unexpected_keys:
+                _log.info(f"  - Unexpected keys in checkpoint: {len(unexpected_keys)}")
         else:
-            print('no pre-trained model')
-
+            _log.info(f"model_idx: {model_idx} - no pre-trained model found, using random initialization")
 
     n_parameters = sum(p.numel() for p in models[0].parameters())*4
     _log.info('Number of params: {}'.format(n_parameters))
@@ -615,16 +635,16 @@ def main(args):
             lr_schedulers[model_idx].step(epoch)
 
         train_err = train_eval_one_epoch(args=args,  models=models, devices=devices, criterion=criterion, data_loader=train_loader, optimizers=optimizers, epoch=epoch, print_freq=args.print_freq, logger=_log, construct_kernel=construct_kernel)
+        # with torch.no_grad():
+        #     val_err = train_eval_one_epoch(args=args, models=models, devices=devices, criterion=criterion, data_loader=val_loader, optimizers=optimizers, epoch=epoch, print_freq=args.print_freq, logger=_log, construct_kernel=construct_kernel, train = False, print_progress=True)
 
-        val_err = train_eval_one_epoch(args=args, models=models, devices=devices, criterion=criterion, data_loader=val_loader, optimizers=optimizers, epoch=epoch, print_freq=args.print_freq, logger=_log, construct_kernel=construct_kernel, train = False, print_progress=True)
-
-        if val_err < best_val_err:
-            best_val_err = val_err
-            for model_idx in range(4):
-                torch.save(
-                    {'state_dict': models[model_idx].state_dict()}, 
-                    os.path.join(args.output_dir, 'model_range'+str(model_idx)+'_best.pth.tar')
-                )
+        # if val_err < best_val_err:
+        #     best_val_err = val_err
+        #     for model_idx in range(4):
+        #         torch.save(
+        #             {'state_dict': models[model_idx].state_dict()}, 
+        #             os.path.join(args.output_dir, 'model_range'+str(model_idx)+'_best.pth.tar')
+        #         )
 
         epoch += 1
 

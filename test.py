@@ -19,9 +19,6 @@ from logger import FileLogger
 from pathlib import Path
 from typing import Iterable, Optional
 import copy
-import torch.multiprocessing as mp
-mp.set_start_method('spawn', force=True)
-
 
 import nets
 from nets import model_entrypoint
@@ -277,8 +274,11 @@ class Material_Project_Dataset(torch.utils.data.Dataset):
         return torch.load(file_path, weights_only=True)
     
 
-def get_material_project_dataset(construct_kernel, device):
+def get_material_project_dataset(construct_kernel, device, only_test = True):
     """Process and save datasets individually for train, val, test."""
+    if only_test:
+        return Material_Project_Dataset('test', construct_kernel, device)
+
     datasets = {}
 
     datasets["train"], datasets["val"], datasets["test"] = Material_Project_Dataset('train', construct_kernel, device), Material_Project_Dataset('val', construct_kernel, device), Material_Project_Dataset('test', construct_kernel, device)
@@ -302,39 +302,10 @@ def get_hamiltonian_size(args, spinful):
                                     device_torch=torch.device('cpu'))
     return irreps_edge, construct_kernel
 
-def process_worker(q, model_idx, test_dataset, device, model, range_dis):
-    try:
-        with torch.no_grad():
-            model.eval()
-            test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=1, pin_memory = False)
-            print(f"Test loader length: {len(test_loader)}")        
-            for step, data in enumerate(test_loader):
-                file_path, _, _, _, _, _, _, _, H0_ds, H0, overlap_tensor, mask_tensor, edge_vec, edge_src, edge_dst, ele_list, mp_stru_name, delta_H_dp, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw = data
-                file_path, H0_ds, H0, overlap_tensor, mask_tensor, edge_vec, edge_src, edge_dst, delta_H_dp, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw = file_path[0], H0_ds[0].to(device, non_blocking=True), H0[0].to(device, non_blocking=True), overlap_tensor[0].to(device, non_blocking=True), mask_tensor[0].to(device, non_blocking=True), edge_vec[0].to(device, non_blocking=True), edge_src.to(torch.int64)[0].to(device, non_blocking=True), edge_dst.to(torch.int64)[0].to(device, non_blocking=True), delta_H_dp[0].to(device, non_blocking=True), H0_raw[0].to(device, non_blocking=True), overlap_tensor_raw[0].to(device, non_blocking=True), mask_tensor_raw[0].to(device, non_blocking=True), delta_H_raw[0].to(device, non_blocking=True)        
-                node_num = max(int(max(edge_src)+1), int(max(edge_dst)+1))
-                batch = torch.ones((node_num,), dtype=torch.int32).to(device, non_blocking=True)
-                node_atom = [-1 for _ in range(node_num)]
-                for ele_idx in range(len(ele_list)):
-                    node_atom[edge_src[ele_idx]] = ele_dict[ele_list[ele_idx][0][0]]
-                node_atom = torch.tensor(node_atom, dtype=torch.long, device=device)
-                pred_h_direct_sum, _, _ = model(weak_ham_in = H0_ds,
-                                        node_num = node_num,
-                                        edge_src = edge_src,
-                                        edge_dst = edge_dst, 
-                                        edge_vec = edge_vec, 
-                                        batch = batch,
-                                        node_atom = node_atom,
-                                        use_sep = True,
-                                        range_dis = range_dis)        
-                q.put((mp_stru_name[0], model_idx, safe(pred_h_direct_sum), safe(H0_raw), safe(overlap_tensor_raw), safe(mask_tensor_raw), safe(delta_H_raw), safe(edge_vec), safe(edge_src), safe(edge_dst)))
-    except Exception as e:
-        print(f"Process {model_idx} encountered an error: {e}")
-
 
 def main(args):
 
-    mp.set_start_method("spawn", force=True)
-    mp.set_sharing_strategy("file_system")
+
 
     _log = FileLogger(is_master=True, is_rank0=True, output_dir=args.output_dir)
     _log.info(args)
@@ -356,7 +327,7 @@ def main(args):
     ''' Network '''
     create_model = model_entrypoint(args.model_name)
 
-    devices = ['cuda:0', 'cuda:1', 'cuda:2', 'cuda:3']
+    device = 'cpu'
 
     models = []
 
@@ -372,7 +343,7 @@ def main(args):
             with_trace=args.with_trace,
             trace_out_len=args.trace_out_len,
             use_w2v=False,
-            ).to(devices[model_idx]))
+            ).to(device))
 
     checkpoint_paths = [args.checkpoint_path1, args.checkpoint_path2, args.checkpoint_path3, args.checkpoint_path4]
 
@@ -386,64 +357,71 @@ def main(args):
             print('no pre-trained model')
 
 
-    n_parameters = sum(p.numel() for p in models[0].parameters())*5
+    n_parameters = sum(p.numel() for p in models[0].parameters())*4
     _log.info('Number of params: {}'.format(n_parameters))
 
     ''' Dataset '''
-    _, _, test_dataset = get_material_project_dataset(construct_kernel = construct_kernel, device=devices[0])
+    test_dataset = get_material_project_dataset(construct_kernel = construct_kernel, device=device, only_test=True)
 
     _log.info('')
     _log.info('Testing set size:    {}\n'.format(len(test_dataset)))
 
     ''' Processors '''
-    mgr = mp.Manager()
-    q = mgr.Queue()
     testing_num = len(test_dataset)
     range_dis = [[0.0, 1.0], [1.0, 2.0], [2.0, 4.0], [4.0, 6.0]]
-    for model_idx in range(4):
-        p = mp.Process(
-            target=process_worker,
-            args=(q, model_idx, test_dataset, devices[model_idx], models[model_idx], range_dis[model_idx])
-            )
-        p.start()
     MAE_metric = MaskedMAELosswithGuage()
     MAE_list = []
     ls = [1, 1, 1, 1, 3, 3, 5, 5, 7]
-    buffers = {} 
     total_process_sample = 0 
     file_res_w_root = '/your_path/NextHAM/test_res.txt'
     file_res_w_obj = open(file_res_w_root, 'w')
-    time1 = time.time()
-    with torch.no_grad():
-        while total_process_sample < testing_num:
-            mp_key, model_idx, pred_h_direct_sum, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw, edge_vec, edge_src, edge_dst = q.get()
-            print('mp_key, model_idx: ', mp_key, model_idx)
-            if mp_key not in buffers:
-                buffers[mp_key] = [None, None, None, None]
-            buffers[mp_key][model_idx] = pred_h_direct_sum
-            if all(x is not None for x in buffers[mp_key]):
-                pred_h = torch.sum(torch.stack(buffers[mp_key]), dim=0)
-                pred_h = construct_kernel.get_H(pred_h)
-                delta_H_pred_real = reverse_transform_matrix(pred_h[:,0,:].real, ls)
-                H_gt = delta_H_raw + H0_raw
-                H_pred = H0_raw.clone()
-                H_pred, H_gt, H0_raw, overlap_tensor_raw, mask_tensor_raw = H_pred.reshape(-1, 2, 27, 2, 27), H_gt.reshape(-1, 2, 27, 2, 27), H0_raw.reshape(-1, 2, 27, 2, 27), overlap_tensor_raw.reshape(-1, 2, 27, 2, 27), mask_tensor_raw.reshape(-1, 2, 27, 2, 27)
-                H_pred[:, 0, :, 0, :].real = H_pred[:, 0, :, 0, :].real + delta_H_pred_real
-                H_pred[:, 1, :, 1, :].real = H_pred[:, 1, :, 1, :].real + delta_H_pred_real 
-                H_pred, H_gt, H0_raw, overlap_tensor_raw, mask_tensor_raw = H_pred.reshape(-1, 54, 54), H_gt.reshape(-1, 54, 54), H0_raw.reshape(-1, 54, 54), overlap_tensor_raw.reshape(-1, 54, 54), mask_tensor_raw.reshape(-1, 54, 54)
-                _, mae_H0 = MAE_metric(H0_raw, H_gt, overlap_tensor_raw, mask_tensor_raw, cal_new_target = True)
-                _, mae_H_pred = MAE_metric(H_pred, H_gt, overlap_tensor_raw,mask_tensor_raw, cal_new_target = True)
-                file_res_w_obj.write(mp_key+' '+str(mae_H0.item())+' '+str(mae_H_pred.item())+'\n')
-                file_res_w_obj.flush()
-                buffers.pop(mp_key)
-                MAE_list.append(mae_H_pred.item())
-                # torch.save((H_gt, H_pred, None, None, mask_tensor_raw, edge_vec, edge_src, edge_dst, ele_dict), '/your_path/NextHAM/res/' + (mp_key if mp_key.ends_with('.pth') else mp_key+'.pth'))
-                total_process_sample += 1
-        print('np.mean(MAE_list): ', np.mean(MAE_list))
-        print('mean time: ', (time.time()-time1)/total_process_sample)
-    file_res_w_obj.close()
+    with torch.inference_mode():
+        test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=1, pin_memory = False)
+        print(f"Test loader length: {len(test_loader)}")        
+        for step, data in enumerate(test_loader):
+            file_path, _, _, _, _, _, _, _, H0_ds, H0, overlap_tensor, mask_tensor, edge_vec, edge_src, edge_dst, ele_list, mp_stru_name, delta_H_dp, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw = data
+            file_path, H0_ds, H0, overlap_tensor, mask_tensor, edge_vec, edge_src, edge_dst, delta_H_dp, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw = file_path[0], H0_ds[0].to(device, non_blocking=True), H0[0].to(device, non_blocking=True), overlap_tensor[0].to(device, non_blocking=True), mask_tensor[0].to(device, non_blocking=True), edge_vec[0].to(device, non_blocking=True), edge_src.to(torch.int64)[0].to(device, non_blocking=True), edge_dst.to(torch.int64)[0].to(device, non_blocking=True), delta_H_dp[0].to(device, non_blocking=True), H0_raw[0].to(device, non_blocking=True), overlap_tensor_raw[0].to(device, non_blocking=True), mask_tensor_raw[0].to(device, non_blocking=True), delta_H_raw[0].to(device, non_blocking=True)        
+            node_num = max(int(max(edge_src)+1), int(max(edge_dst)+1))
+            batch = torch.ones((node_num,), dtype=torch.int32).to(device, non_blocking=True)
+            node_atom = [-1 for _ in range(node_num)]
+            for ele_idx in range(len(ele_list)):
+                node_atom[edge_src[ele_idx]] = ele_dict[ele_list[ele_idx][0][0]]
+            node_atom = torch.tensor(node_atom, dtype=torch.long, device=device)
+            pred_h_direct_sum = None
+            for m_idx in range(4):
+                model = models.pop(0)
+                current_pred, _, _ = model(weak_ham_in = H0_ds,
+                                        node_num = node_num,
+                                        edge_src = edge_src,
+                                        edge_dst = edge_dst, 
+                                        edge_vec = edge_vec, 
+                                        batch = batch,
+                                        node_atom = node_atom,
+                                        use_sep = True,
+                                        range_dis = range_dis[m_idx])   
+                if pred_h_direct_sum is None:
+                    pred_h_direct_sum = current_pred.detach().clone()
+                else:
+                    pred_h_direct_sum += current_pred.detach().clone()
+                del current_pred, model
+                # print(pred_h_direct_sum.shape)
+                gc.collect()
+            pred_h = construct_kernel.get_H(pred_h_direct_sum)
+            delta_H_pred_real = reverse_transform_matrix(pred_h[:,0,:].real, ls)
+            H_gt = delta_H_raw + H0_raw
+            H_pred = H0_raw.clone()
+            H_pred, H_gt, H0_raw, overlap_tensor_raw, mask_tensor_raw = H_pred.reshape(-1, 2, 27, 2, 27), H_gt.reshape(-1, 2, 27, 2, 27), H0_raw.reshape(-1, 2, 27, 2, 27), overlap_tensor_raw.reshape(-1, 2, 27, 2, 27), mask_tensor_raw.reshape(-1, 2, 27, 2, 27)
+            H_pred[:, 0, :, 0, :].real = H_pred[:, 0, :, 0, :].real + delta_H_pred_real
+            H_pred[:, 1, :, 1, :].real = H_pred[:, 1, :, 1, :].real + delta_H_pred_real 
+            H_pred, H_gt, H0_raw, overlap_tensor_raw, mask_tensor_raw = H_pred.reshape(-1, 54, 54), H_gt.reshape(-1, 54, 54), H0_raw.reshape(-1, 54, 54), overlap_tensor_raw.reshape(-1, 54, 54), mask_tensor_raw.reshape(-1, 54, 54)
+            _, mae_H0 = MAE_metric(H0_raw, H_gt, overlap_tensor_raw, mask_tensor_raw, cal_new_target = True)
+            _, mae_H_pred = MAE_metric(H_pred, H_gt, overlap_tensor_raw,mask_tensor_raw, cal_new_target = True)
+            file_res_w_obj.write(mp_stru_name[0]+' '+str(mae_H0.item())+' '+str(mae_H_pred.item())+'\n')
+            file_res_w_obj.flush()
+            MAE_list.append(mae_H_pred.item())
+            # torch.save((None, H_pred, None, None, mask_tensor_raw, edge_vec, edge_src, edge_dst, ele_dict), file_path.replace('.pth', '_out.pth'))
+        _log.info(f'np.mean(MAE_list): {np.mean(MAE_list):.6f}')
 
-    
 if __name__ == "__main__":
     set_seed()
     parser = argparse.ArgumentParser('Testing NextHAM on Materials-HAM-SOC', parents=[get_args_parser()])

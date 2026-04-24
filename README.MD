@@ -1,6 +1,6 @@
 # [ICLR 2026] NextHAM: Advancing Universal Deep Learning for Electronic-Structure Hamiltonian Prediction of Materials
 
-This is the official implementation of the paper **"Advancing Universal Deep Learning for Electronic-Structure Hamiltonian Prediction of Materials"**, accepted at **ICLR 2026**.
+This is NextHAM V1.1, the official implementation of the paper "Advancing Universal Deep Learning for Electronic-Structure Hamiltonian Prediction of Materials" (accepted at ICLR 2026), **optimized for large-system inference.**
 
 ---
 
@@ -46,8 +46,8 @@ The **Materials-SOC-HAM** dataset proposed in this paper is publicly available.
 
    If you wish to train on new data, we highly recommend fine-tuning from our provided pre-trained models to achieve faster convergence.
 
-   * **Download Link**: [NextHAM Pre-trained Weights] (https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_191f3754a48697e8&)
-   * **Password**: `VDGJ`
+   * **Download Link**: [NextHAM-V1-Large Pre-trained Weights] (https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_226d2b5159e37f93&)
+   * **Password**: `vzts`
    * **Setup**: Please download the weights and place them in the `./pretrained_models` directory.
 
 2. **Training**
@@ -69,7 +69,7 @@ The **Materials-SOC-HAM** dataset proposed in this paper is publicly available.
 This section provides a step-by-step tutorial on how to prepare your own dataset using ABACUS, train the NextHAM model on it, and visualize the predicted band structures against the Density Functional Theory (DFT) ground truth.
 
 ### Step 1: Environment & Dependency Setup
-1. Log in to [www.scnet.cn](http://www.scnet.cn) and download `abacus-v3.10.0LTS` and `abacus-v3.9.0.18` from the App Store. Deploy them to your local directory.
+1. Log in to [www.scnet.cn](http://www.scnet.cn) and download `abacus-v3.10.0LTS` and `abacus-v3.9.0.18gethscacd-intelmpi2026` from the App Store. Deploy them to your local directory.
 2. Update the ABACUS executable paths in `./ABACUS2NextHAM/src/abacus2nextham/constant.py` (lines 12-15).
 3. Download the `ase_abacus` package and activate its environment:
    ```bash
