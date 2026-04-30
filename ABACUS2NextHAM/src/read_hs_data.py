@@ -415,12 +415,12 @@ class HamiltonianDataReader:
             
             # Apply Transformation (Batched)
             if self.nspin == 1:
-                temp_data[:3] = trans_orb_mat_np @ temp_data[:3] @ trans_orb_mat_np_T
+                temp_data[:3] = trans_orb_mat_np @ temp_data[:4] @ trans_orb_mat_np_T
             elif self.nspin == 4:
                 # Spin-orbital reshuffling + transformation
-                reshaped = temp_data[:3].reshape((3, 27, 2, 27, 2))
+                reshaped = temp_data[:4].reshape((3, 27, 2, 27, 2))
                 reshaped = reshaped.transpose((0, 2, 1, 4, 3)).reshape((3, 54, 54))
-                temp_data[:3] = trans_orb_mat_np @ reshaped @ trans_orb_mat_np_T
+                temp_data[:4] = trans_orb_mat_np @ reshaped @ trans_orb_mat_np_T
             
             temp_label = np.zeros(8, dtype=float)
             temp_label[0:3] = target_r
