@@ -172,7 +172,21 @@ def get_args_parser():
     parser.add_argument('--evaluate', action='store_true', dest='evaluate')
     parser.set_defaults(evaluate=False)
     return parser 
-    
+
+def visualize_zero(matrix, threshold=1e-7):
+    if isinstance(matrix, torch.Tensor):
+        matrix = matrix.detach().cpu().numpy()  
+    if matrix.ndim != 2:
+        raise ValueError(f"该函数仅支持 2D 矩阵，当前输入维度为: {matrix.ndim}")
+    binary_matrix = np.where(np.abs(matrix) > threshold, 1, 0)
+    formatted_rows = []
+    for row in binary_matrix:
+        row_str = ", ".join(map(str, row))
+        formatted_rows.append(row_str)
+    result = "[\n  " + ";\n  ".join(formatted_rows) + "\n]"
+    return result
+
+
 def reverse_transform_matrix(tensor, ls):
     C = tensor.shape[0]
     total_HW = sum(ls)
@@ -381,6 +395,7 @@ def main(args):
         for step, data in enumerate(test_loader):
             file_path, _, _, _, _, _, _, _, H0_ds, H0, overlap_tensor, mask_tensor, edge_vec, edge_src, edge_dst, ele_list, mp_stru_name, delta_H_dp, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw = data
             file_path, H0_ds, H0, overlap_tensor, mask_tensor, edge_vec, edge_src, edge_dst, delta_H_dp, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw = file_path[0], H0_ds[0].to(device, non_blocking=True), H0[0].to(device, non_blocking=True), overlap_tensor[0].to(device, non_blocking=True), mask_tensor[0].to(device, non_blocking=True), edge_vec[0].to(device, non_blocking=True), edge_src.to(torch.int64)[0].to(device, non_blocking=True), edge_dst.to(torch.int64)[0].to(device, non_blocking=True), delta_H_dp[0].to(device, non_blocking=True), H0_raw[0].to(device, non_blocking=True), overlap_tensor_raw[0].to(device, non_blocking=True), mask_tensor_raw[0].to(device, non_blocking=True), delta_H_raw[0].to(device, non_blocking=True)        
+            # print(visualize_zero(mask_tensor_raw.reshape((-1, 2, 27, 2, 27))[0, 0, :, 0, :]))
             node_num = max(int(max(edge_src)+1), int(max(edge_dst)+1))
             batch = torch.ones((node_num,), dtype=torch.int32).to(device, non_blocking=True)
             node_atom = [-1 for _ in range(node_num)]
