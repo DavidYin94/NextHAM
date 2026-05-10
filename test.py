@@ -395,7 +395,9 @@ def main(args):
         for step, data in enumerate(test_loader):
             file_path, _, _, _, _, _, _, _, H0_ds, H0, overlap_tensor, mask_tensor, edge_vec, edge_src, edge_dst, ele_list, mp_stru_name, delta_H_dp, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw = data
             file_path, H0_ds, H0, overlap_tensor, mask_tensor, edge_vec, edge_src, edge_dst, delta_H_dp, H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw = file_path[0], H0_ds[0].to(device, non_blocking=True), H0[0].to(device, non_blocking=True), overlap_tensor[0].to(device, non_blocking=True), mask_tensor[0].to(device, non_blocking=True), edge_vec[0].to(device, non_blocking=True), edge_src.to(torch.int64)[0].to(device, non_blocking=True), edge_dst.to(torch.int64)[0].to(device, non_blocking=True), delta_H_dp[0].to(device, non_blocking=True), H0_raw[0].to(device, non_blocking=True), overlap_tensor_raw[0].to(device, non_blocking=True), mask_tensor_raw[0].to(device, non_blocking=True), delta_H_raw[0].to(device, non_blocking=True)        
-            # print(visualize_zero(mask_tensor_raw.reshape((-1, 2, 27, 2, 27))[0, 0, :, 0, :]))
+            # mask_tensor_raw = mask_tensor_raw.reshape((-1, 27, 2, 27, 2))
+            # mask_tensor_raw = mask_tensor_raw.permute(0, 2, 1, 4, 3).reshape((-1, 54, 54))
+            print(visualize_zero(mask_tensor_raw.reshape((-1, 2, 27, 2, 27))[0, 0, :, 0, :]))
             node_num = max(int(max(edge_src)+1), int(max(edge_dst)+1))
             batch = torch.ones((node_num,), dtype=torch.int32).to(device, non_blocking=True)
             node_atom = [-1 for _ in range(node_num)]
@@ -404,7 +406,7 @@ def main(args):
             node_atom = torch.tensor(node_atom, dtype=torch.long, device=device)
             pred_h_direct_sum = None
             for m_idx in range(4):
-                model = models.pop(0)
+                model = models[m_idx]
                 current_pred, _, _ = model(weak_ham_in = H0_ds,
                                         node_num = node_num,
                                         edge_src = edge_src,
@@ -418,7 +420,7 @@ def main(args):
                     pred_h_direct_sum = current_pred.detach().clone()
                 else:
                     pred_h_direct_sum += current_pred.detach().clone()
-                del current_pred, model
+                del current_pred
                 # print(pred_h_direct_sum.shape)
                 gc.collect()
             pred_h = construct_kernel.get_H(pred_h_direct_sum)
@@ -430,11 +432,13 @@ def main(args):
             H_pred[:, 1, :, 1, :].real = H_pred[:, 1, :, 1, :].real + delta_H_pred_real 
             H_pred, H_gt, H0_raw, overlap_tensor_raw, mask_tensor_raw = H_pred.reshape(-1, 54, 54), H_gt.reshape(-1, 54, 54), H0_raw.reshape(-1, 54, 54), overlap_tensor_raw.reshape(-1, 54, 54), mask_tensor_raw.reshape(-1, 54, 54)
             _, mae_H0 = MAE_metric(H0_raw, H_gt, overlap_tensor_raw, mask_tensor_raw, cal_new_target = True)
-            _, mae_H_pred = MAE_metric(H_pred, H_gt, overlap_tensor_raw,mask_tensor_raw, cal_new_target = True)
+            _, mae_H_pred = MAE_metric(H_pred, H_gt, overlap_tensor_raw, mask_tensor_raw, cal_new_target = True)
             file_res_w_obj.write(mp_stru_name[0]+' '+str(mae_H0.item())+' '+str(mae_H_pred.item())+'\n')
             file_res_w_obj.flush()
             MAE_list.append(mae_H_pred.item())
-            # torch.save((None, H_pred, None, None, mask_tensor_raw, edge_vec, edge_src, edge_dst, ele_dict), file_path.replace('.pth', '_out.pth'))
+            # import pdb; pdb.set_trace()
+            print(file_path)
+            torch.save((H_gt, H_pred, None, None, mask_tensor_raw, edge_vec, edge_src, edge_dst, ele_dict), args.output_dir + os.path.basename(file_path).replace('.pth', '_out.pth'))
         _log.info(f'np.mean(MAE_list): {np.mean(MAE_list):.6f}')
 
 if __name__ == "__main__":

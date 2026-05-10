@@ -25,6 +25,7 @@ class XR_matrix:
         # Auto-detect binary or text mode
         is_binary = False
         import struct
+        print(self.XR_fileName)
         with open(self.XR_fileName, 'rb') as f:
             header = f.read(4)
             if header != b'STEP':
@@ -154,8 +155,15 @@ class add_hs_matrix:
     @time_execution
     def add_matrxi_element(self):
         index_dict = self.read_stru()
+
+        print(self.hr1, self.hr2)
+        # exit(0)
+
         pred_hr = XR_matrix(4, self.hr1)
         abacus_hr = XR_matrix(4, self.hr2)
+
+
+
         R_coor1 = pred_hr.R_direct_coor
         R_coor2 = abacus_hr.R_direct_coor
         R_num1 = pred_hr.R_num
@@ -208,6 +216,8 @@ class add_hs_matrix:
                     # 将 indptr 数组转换为字符串，每个元素之间用空格分隔，并写入一行
                     indptr_str = " ".join(map(str, sparse_data_hr.indptr))
                     f1.write(f"{indptr_str}\n")
+        # print('saved!')
+        # exit(0)
             
 
 def main():

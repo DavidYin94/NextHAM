@@ -415,12 +415,12 @@ class HamiltonianDataReader:
             
             # Apply Transformation (Batched)
             if self.nspin == 1:
-                temp_data[:3] = trans_orb_mat_np @ temp_data[:4] @ trans_orb_mat_np_T
+                temp_data[:3] = trans_orb_mat_np @ temp_data[:3] @ trans_orb_mat_np_T
             elif self.nspin == 4:
                 # Spin-orbital reshuffling + transformation
-                reshaped = temp_data[:4].reshape((3, 27, 2, 27, 2))
+                reshaped = temp_data[:3].reshape((3, 27, 2, 27, 2))
                 reshaped = reshaped.transpose((0, 2, 1, 4, 3)).reshape((3, 54, 54))
-                temp_data[:4] = trans_orb_mat_np @ reshaped @ trans_orb_mat_np_T
+                temp_data[:3] = trans_orb_mat_np @ reshaped[:3] @ trans_orb_mat_np_T
             
             temp_label = np.zeros(8, dtype=float)
             temp_label[0:3] = target_r
@@ -494,6 +494,10 @@ class HamiltonianDataReader:
         print(f"        # Extract edge information")
         output_path = self.out_path / "output_inference.pth"
         input_path = os.path.join(self.out_path, "input_inference.pth")
+
+        mask_tensor = mask_tensor.reshape((-1, 27, 2, 27, 2))
+        mask_tensor = mask_tensor.permute(0, 2, 1, 4, 3).reshape((-1, 54, 54))
+
         self.data = [
             descriptor_tensor, 
             overlap_tensor, 

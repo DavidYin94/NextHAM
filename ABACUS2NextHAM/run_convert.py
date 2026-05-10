@@ -165,7 +165,7 @@ def process_single_case(case_dir, case_id, out_dir, construct_kernel):
         H0_raw, overlap_tensor_raw, mask_tensor_raw, delta_H_raw
     ], final_save_path)
 
-    efermi_path = os.path.join(out_dir, f"efermi.pth")
+    efermi_path = os.path.join(out_dir, f"efermi_{case_id}.pth")
     torch.save(fermi_energy, efermi_path)
 
     os.system("rm -rf "+temp_dir)

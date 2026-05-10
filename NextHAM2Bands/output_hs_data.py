@@ -166,7 +166,7 @@ class transform_abacus_hamiltion_data:
         R_number = len(sorted_unique_R)
 
         # 创建文件地址，写文件
-        precise_H_pred_save = os.path.join(self.save_path, 'predict_hr_cut')
+        precise_H_pred_save = os.path.join(self.save_path, 'hr_cut')
         with open(precise_H_pred_save, 'w') as f_precise_H_pred:
             f_precise_H_pred.write('STEP: 0' + '\n')
             f_precise_H_pred.write(f'Matrix Dimension of H(R): {self.stru_dim}' + '\n')
