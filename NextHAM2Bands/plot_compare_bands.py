@@ -61,9 +61,9 @@ def set_fig(fig, ax, bwidth=1.0, width=1, mysize=10):
     ax.tick_params(length=5, width=width, labelsize=mysize)
 
 def plot_bands(band1_file, band2_file, stru_file, out_file, mu, emin, emax, 
-               kline_density=0.02, adaptive_align=True):
+               kline_density=0.02, adaptive_align=False):
     """
-    绘制能带对比图 (包含自适应平移与防乱线处理)
+    绘制能带对比图
     """
     # 1. 加载数据
     band1 = np.loadtxt(band1_file)
