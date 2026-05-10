@@ -60,52 +60,91 @@ def set_fig(fig, ax, bwidth=1.0, width=1, mysize=10):
     ax.spines['bottom'].set_linewidth(bwidth)
     ax.tick_params(length=5, width=width, labelsize=mysize)
 
-def plot_bands(band1_file, band2_file, stru_file, out_file, mu, emin, emax, kline_density=0.02):
+def plot_bands(band1_file, band2_file, stru_file, out_file, mu, emin, emax, 
+               kline_density=0.02, adaptive_align=True):
+    """
+    绘制能带对比图 (包含自适应平移与防乱线处理)
+    """
+    # 1. 加载数据
     band1 = np.loadtxt(band1_file)
     band2 = np.loadtxt(band2_file)
     
+    # 【修复 1】：强制按能量排序，彻底解决连线像条形码一样乱飞的问题
+    band1 = np.sort(band1, axis=1)
+    band2 = np.sort(band2, axis=1)
+    
+    # 2. 处理高对称点路径坐标 (直接调用你环境里原有的 generate_kline 函数)
     kpoint_label, kpoint_num_in_line, lattice_vector = generate_kline(stru_file)
     
-    band_data1 = band1 - mu
-    band_data2 = band2 - mu
-    
-    k_num = band1.shape[0]
-    k_length = k_num * kline_density
-    x_coor_array = np.linspace(0, k_length, k_num)
-    
-    high_symmetry_kpoint_labels = kpoint_label
     high_symmetry_kpoint_x_coor = []
-    for ii in range(len(high_symmetry_kpoint_labels)):
-        high_symmetry_kpoint_x_coor.append(sum(np.array(kpoint_num_in_line[:ii]) * kline_density))
+    for ii in range(len(kpoint_label)):
+        segment_points_sum = sum(np.array(kpoint_num_in_line[:ii]))
+        high_symmetry_kpoint_x_coor.append(segment_points_sum * kline_density)
 
-    mysize = 10
+    # 3. 计算自适应平移量
+    shift = 0.0
+    if adaptive_align:
+        if band1.shape == band2.shape:
+            # 【修复 2】：找到费米能级 (mu) 以下的占据带数量，避免高能空带干扰平移方向
+            occ_bands_count = np.sum(band1[0, :] <= (mu + 0.1))
+            
+            if 0 < occ_bands_count < band1.shape[1]:
+                # 仅用价带计算修正量 = True - Pred
+                shift = np.mean(band1[:, :occ_bands_count] - band2[:, :occ_bands_count])
+                print(f"[*] 自适应平移 (基于价带对齐): 预测值需修正 {shift:+.4f} eV")
+            else:
+                # 备用退化方案
+                shift = np.mean(band1 - band2)
+                print(f"[*] 自适应平移 (全局对齐): 预测值需修正 {shift:+.4f} eV")
+        else:
+            print("[!] 警告: 能带维度不匹配，偏移量设为 0。")
+
+    # 4. 数据标准化：预测值加上修正量，然后统一以真值 mu 为 0 点
+    band_data1 = band1 - mu
+    band_data2 = (band2 + shift) - mu
+    
+    # 5. 准备 X 轴物理坐标
+    k_num = band1.shape[0]
+    k_length = (k_num - 1) * kline_density 
+    x_coor_array = np.linspace(0, k_length, k_num)
+
+    # 6. 开始绘图
+    mysize = 12
     fig, ax = plt.subplots(1, 1, tight_layout=True, figsize=(8, 6))
-    set_fig(fig, ax, mysize=mysize)
     
-    # Plot band 1
-    ax.plot(x_coor_array, band_data1, color='blue', linewidth=1.5, linestyle='-', alpha=0.7)
-    # Plot band 2
-    ax.plot(x_coor_array, band_data2, color='red', linewidth=1.5, linestyle='--', alpha=0.7)
+    # 绘制真值矩阵 (蓝色实线) —— 坚决不加 label，防止图例爆炸
+    ax.plot(x_coor_array, band_data1, color='blue', linewidth=1.5, linestyle='-', alpha=0.5)
     
-    # Custom legends
-    ax.plot([], [], color='blue', linewidth=1.5, linestyle='-', label='Band 1')
-    ax.plot([], [], color='red', linewidth=1.5, linestyle='--', label='Band 2')
-    ax.legend(loc="upper right")
+    # 绘制预测值矩阵 (红色虚线) —— 同样不加 label
+    ax.plot(x_coor_array, band_data2, color='red', linewidth=1.5, linestyle='--', alpha=0.9)
     
-    ax.set_title('Band Structure Comparison', fontsize=mysize)
+    # 【修复 3】：“空线占位法”生成干净图例，只显示预测值的信息
+    pred_label = f'Pred (Shifted: {shift:+.2f} eV)' if adaptive_align else 'Predicted Band'
+    ax.plot([], [], color='red', linewidth=1.5, linestyle='--', label=pred_label)
+    
+    # 7. 装饰与设置
+    ax.set_title('Band Structure Comparison', fontsize=mysize + 2)
     ax.set_ylabel('E - E$_F$ (eV)', fontsize=mysize)
     ax.set_xlim(0, x_coor_array[-1])
     ax.set_ylim(emin, emax)
-    plt.xticks(high_symmetry_kpoint_x_coor, [l.strip() for l in high_symmetry_kpoint_labels])
     
-    for i in high_symmetry_kpoint_x_coor:
-        plt.axvline(i, color="grey", alpha=0.5, lw=1, linestyle='--')
-        ax.axhline(0.0, color="black", alpha=1, lw=1, linestyle='--')
+    # 【修复 4】：安全的 X 轴刻度设置法，避免 ValueError
+    ax.set_xticks(high_symmetry_kpoint_x_coor)
+    ax.set_xticklabels([l.strip() for l in kpoint_label])
+    
+    for x in high_symmetry_kpoint_x_coor:
+        ax.axvline(x, color="grey", alpha=0.4, lw=0.8, linestyle='--')
+    ax.axhline(0.0, color="black", alpha=0.8, lw=1.2, linestyle='-')
 
-    plt.savefig(out_file)
+    # 渲染图例
+    ax.legend(loc="upper right", frameon=False, fontsize=mysize-2)
+
+    # 保存图片
+    plt.savefig(out_file, dpi=300)
     plt.close('all')
-    print(f"Comparison plot saved to {out_file}")
+    print(f"[OK] 能带对比图已保存: {out_file}")
 
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot and compare two band1.txt files.")
     parser.add_argument("--band1", type=str, required=True, help="Path to first band file")

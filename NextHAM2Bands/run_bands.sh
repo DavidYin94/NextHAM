@@ -1,5 +1,5 @@
 python run_bands_compare.py \
-    --pth /your_path/NextHAM-main/res/case-0.pth \
-    --case-dir /your_path/NextHAM-main/ABACUS2NextHAM/simulate/case-0 \
-    --efermi-pth /your_path/NextHAM-main/ABACUS2NextHAM/processed_data/efermi.pth \
+    --pth /your_path/NextHAM/test_res/case-2_out.pth \
+    --case-dir /your_path/NextHAM/ABACUS2NextHAM/simulate/case-2 \
+    --efermi-pth /your_path/NextHAM/ABACUS2NextHAM/processed_data/efermi_case-2.pth \
     --out-dir ./band_res/

@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 
-PATH_PSEUDO = '/your_path/NextHAM-main/ABACUS2NextHAM/input/pseudo'
-PATH_ORBITAL = '/your_path/NextHAM-main/ABACUS2NextHAM/input/orbital'
-PATH_STRU = '/your_path/NextHAM-main/ABACUS2NextHAM/input/structures'
+PATH_PSEUDO = '/your_path/NextHAM/ABACUS2NextHAM/input/pseudo'
+PATH_ORBITAL = '/your_path/NextHAM/ABACUS2NextHAM/input/orbital'
+PATH_STRU = '/your_path/NextHAM/ABACUS2NextHAM/input/structures'
 
-PATH_SIMULATION = '/your_path/NextHAM-main/ABACUS2NextHAM/simulate'
-PATH_DATASET = '/your_path/NextHAM-main/ABACUS2NextHAM/dataset'
+PATH_SIMULATION = '/your_path/NextHAM/ABACUS2NextHAM/simulate'
+PATH_DATASET = '/your_path/NextHAM/ABACUS2NextHAM/dataset'
 
 ABACUS_SCF = '/your_path/apprepo/abacus/v3.10.0LTS-intelmpi2025/app/bin/abacus'
 ABACUS_SCF_ENV = '/your_path/apprepo/abacus/v3.10.0LTS-intelmpi2025/scripts/env.sh'

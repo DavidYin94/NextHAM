@@ -29,18 +29,6 @@ except ImportError:
         def time_execution(func):
             return func
 
-def visualize_zero(matrix, threshold=1e-7):
-    if isinstance(matrix, torch.Tensor):
-        matrix = matrix.detach().cpu().numpy()  
-    if matrix.ndim != 2:
-        raise ValueError(f"该函数仅支持 2D 矩阵，当前输入维度为: {matrix.ndim}")
-    binary_matrix = np.where(np.abs(matrix) > threshold, 1, 0)
-    formatted_rows = []
-    for row in binary_matrix:
-        row_str = ", ".join(map(str, row))
-        formatted_rows.append(row_str)
-    result = "[\n  " + ";\n  ".join(formatted_rows) + "\n]"
-    return result
 
 class HamiltonianDataReader:
     """
@@ -427,12 +415,12 @@ class HamiltonianDataReader:
             
             # Apply Transformation (Batched)
             if self.nspin == 1:
-                temp_data[:4] = trans_orb_mat_np @ temp_data[:4] @ trans_orb_mat_np_T
+                temp_data[:3] = trans_orb_mat_np @ temp_data[:3] @ trans_orb_mat_np_T
             elif self.nspin == 4:
                 # Spin-orbital reshuffling + transformation
-                reshaped = temp_data[:4].reshape((4, 27, 2, 27, 2))
-                reshaped = reshaped.transpose((0, 2, 1, 4, 3)).reshape((4, 54, 54))
-                temp_data[:4] = trans_orb_mat_np @ reshaped @ trans_orb_mat_np_T
+                reshaped = temp_data[:3].reshape((3, 27, 2, 27, 2))
+                reshaped = reshaped.transpose((0, 2, 1, 4, 3)).reshape((3, 54, 54))
+                temp_data[:3] = trans_orb_mat_np @ reshaped[:3] @ trans_orb_mat_np_T
             
             temp_label = np.zeros(8, dtype=float)
             temp_label[0:3] = target_r
@@ -486,10 +474,6 @@ class HamiltonianDataReader:
         print(f"        # Extract overlap_tensor")
     
         mask_tensor = matrix_tensor[:, 3].clone().real.to(torch.float32)
-        # print(visualize_zero(mask_tensor.reshape((-1, 2, 27, 2, 27))[0, 0, :, 0, :]))
-
-        # import pdb; pdb.set_trace
-
         print(f"        # Extract mask_tensor")
         
         del matrix_tensor
@@ -510,6 +494,10 @@ class HamiltonianDataReader:
         print(f"        # Extract edge information")
         output_path = self.out_path / "output_inference.pth"
         input_path = os.path.join(self.out_path, "input_inference.pth")
+
+        mask_tensor = mask_tensor.reshape((-1, 27, 2, 27, 2))
+        mask_tensor = mask_tensor.permute(0, 2, 1, 4, 3).reshape((-1, 54, 54))
+
         self.data = [
             descriptor_tensor, 
             overlap_tensor, 
