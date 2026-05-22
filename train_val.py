@@ -635,16 +635,16 @@ def main(args):
             lr_schedulers[model_idx].step(epoch)
 
         train_err = train_eval_one_epoch(args=args,  models=models, devices=devices, criterion=criterion, data_loader=train_loader, optimizers=optimizers, epoch=epoch, print_freq=args.print_freq, logger=_log, construct_kernel=construct_kernel)
-        # with torch.no_grad():
-        #     val_err = train_eval_one_epoch(args=args, models=models, devices=devices, criterion=criterion, data_loader=val_loader, optimizers=optimizers, epoch=epoch, print_freq=args.print_freq, logger=_log, construct_kernel=construct_kernel, train = False, print_progress=True)
+        with torch.no_grad():
+            val_err = train_eval_one_epoch(args=args, models=models, devices=devices, criterion=criterion, data_loader=val_loader, optimizers=optimizers, epoch=epoch, print_freq=args.print_freq, logger=_log, construct_kernel=construct_kernel, train = False, print_progress=True)
 
-        # if val_err < best_val_err:
-        #     best_val_err = val_err
-        #     for model_idx in range(4):
-        #         torch.save(
-        #             {'state_dict': models[model_idx].state_dict()}, 
-        #             os.path.join(args.output_dir, 'model_range'+str(model_idx)+'_best.pth.tar')
-        #         )
+        if val_err < best_val_err:
+            best_val_err = val_err
+            for model_idx in range(4):
+                torch.save(
+                    {'state_dict': models[model_idx].state_dict()}, 
+                    os.path.join(args.output_dir, 'model_range'+str(model_idx)+'_best.pth.tar')
+                )
 
         epoch += 1
 
