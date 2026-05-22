@@ -1,3 +1,0 @@
-/your_path/NextHAM/ABACUS2NextHAM/processed_data/case-0.pth
-/your_path/NextHAM/ABACUS2NextHAM/processed_data/case-1.pth
-/your_path/NextHAM/ABACUS2NextHAM/processed_data/case-2.pth
