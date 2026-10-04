@@ -31,7 +31,7 @@ The **Materials-SOC-HAM** dataset proposed in this paper is publicly available.
 
 1. **Download**: You can access the dataset via the link below:
    * **Link**: [Materials-SOC-HAM Dataset] (https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_c3c50c552df97ace&)
-   * **Extraction Code**: `ogzn`
+   * **Extraction Code**: `FChz`
 
 2. **Configuration**: 
    Once the dataset is downloaded and extracted to your local directory, you must update the file roots:
