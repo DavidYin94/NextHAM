@@ -47,7 +47,7 @@ The **Materials-SOC-HAM** dataset proposed in this paper is publicly available.
    If you wish to train on new data, we highly recommend fine-tuning from our provided pre-trained models to achieve faster convergence.
 
    * **Download Link**: [NextHAM Pre-trained Weights] ( https://dzefile.hpccube.com:65011/efile/s/w/bmV4dGhhbQ==_1e8b234ebcdf584c&)
-   * **Password**: `JqrC`
+   * **Password**: `TZxU`
    * **Setup**: Please download the weights and place them in the `./pretrained_models` directory.
 
 2. **Training**
